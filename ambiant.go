@@ -106,6 +106,8 @@ func main() {
 	// Try to load first sound by default
 	if len(soundPlayer.sounds) > 0 {
 		soundPlayer.loadSound(soundPlayer.sounds[0])
+		soundPlayer.setVolume(-2)
+		soundPlayer.play()
 	}
 
 	systray.Run(func() {
