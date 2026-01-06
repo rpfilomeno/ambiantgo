@@ -124,9 +124,15 @@ func main() {
 
 		// Sounds submenu
 		mSounds := systray.AddMenuItem("Sounds", "Select Sound")
-		soundMenuItems := make([]*systray.MenuItem, len(soundPlayer.sounds))
-		for i, sound := range soundPlayer.sounds {
-			soundMenuItems[i] = mSounds.AddSubMenuItem(filepath.Base(sound), "Select this sound")
+		soundClicked := make(chan string)
+		for _, sound := range soundPlayer.sounds {
+			item := mSounds.AddSubMenuItem(filepath.Base(sound), "Select this sound")
+			go func(p string, m *systray.MenuItem) {
+				for {
+					<-m.ClickedCh
+					soundClicked <- p
+				}
+			}(sound, item)
 		}
 
 		mQuit := systray.AddMenuItem("Quit", "Quit the app")
@@ -147,21 +153,14 @@ func main() {
 				case <-mQuit.ClickedCh:
 					systray.Quit()
 					return
-				}
-
-				// Handle sound selection
-				for i, item := range soundMenuItems {
-					select {
-					case <-item.ClickedCh:
-						err := soundPlayer.loadSound(soundPlayer.sounds[i])
-						if err != nil {
-							log.Println("Error loading sound:", err)
-						}
-						// If currently playing, restart with new sound
-						if soundPlayer.isPlaying {
-							soundPlayer.play()
-						}
-					default:
+				case path := <-soundClicked:
+					err := soundPlayer.loadSound(path)
+					if err != nil {
+						log.Println("Error loading sound:", err)
+					}
+					// If currently playing, restart with new sound
+					if soundPlayer.isPlaying {
+						soundPlayer.play()
 					}
 				}
 			}
