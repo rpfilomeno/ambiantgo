@@ -97,9 +97,7 @@ func (sp *SoundPlayer) setVolume(vol float64) {
 
 func main() {
 	soundPlayer := &SoundPlayer{
-		sounds: []string{
-			"./sounds/Mountain Stream.mp3",
-		},
+		sounds: getSounds(),
 		volume: 0,
 	}
 
@@ -141,7 +139,7 @@ func main() {
 				case <-mPause.ClickedCh:
 					soundPlayer.pause()
 				case <-mVolumeLow.ClickedCh:
-					soundPlayer.setVolume(-3)
+					soundPlayer.setVolume(-5)
 				case <-mVolumeMedium.ClickedCh:
 					soundPlayer.setVolume(-1)
 				case <-mVolumeHigh.ClickedCh:
@@ -186,4 +184,13 @@ func loadIcon(filename string) []byte {
 		return nil
 	}
 	return iconBytes
+}
+
+func getSounds() []string {
+	matches, err := filepath.Glob("./sounds/*.mp3")
+	if err != nil {
+		log.Printf("Error finding sounds: %v", err)
+		return []string{}
+	}
+	return matches
 }
